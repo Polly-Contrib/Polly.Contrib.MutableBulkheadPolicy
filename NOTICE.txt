@@ -1,0 +1,6 @@
+Polly.Contrib.MutableBulkheadPolicy
+
+Copyright (c) Microsoft Corporation.
+
+This software contains code derived from the
+Polly owned and/or further modified by App vNext.
