@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Polly.Contrib.MutableBulkheadPolicy.Specs
 {
@@ -15,6 +16,16 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
     /// </summary>
     public class SemaphoreSlimDynamicTests
     {
+        protected ITestOutputHelper testOutputHelper;
+
+        public SemaphoreSlimDynamicTests(ITestOutputHelper testOutputHelper)
+        {
+#if !DEBUG 
+            testOutputHelper = new SilentOutput();
+#endif
+            this.testOutputHelper = testOutputHelper;
+        }
+
         /// <summary>
         /// SemaphoreSlimDynamic public methods and properties to be tested
         /// </summary>
@@ -336,10 +347,14 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
         /// <param name="semaphore">The SemaphoreSlimDynamic instance</param>
         /// <param name="action">The action name</param>
         /// <param name="param">The action parameter, null if it takes no parameters</param>
+        /// <param name="output">The test output helper to use if available.</param>
+        /// <param name="outputPrefix">Prefix to add to the debug output.</param>
         /// <returns>The action return value, null if the action returns void</returns>
         private static object CallSemaphoreAction
-            (SemaphoreSlimDynamic semaphore, Actions? action, object param)
+            (SemaphoreSlimDynamic semaphore, Actions? action, object param, ITestOutputHelper output = null, string outputPrefix = null)
         {
+            output?.WriteLine($"{outputPrefix ?? string.Empty}Action {action?.ToString() ?? "Unknown"}: {param?.ToString() ?? "None"}" );
+
             if (action == Actions.Wait)
             {
                 if (param is TimeSpan)
@@ -696,6 +711,13 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
                 (Actions.SetAvailableSlot, 4, true, 2),
                 (Actions.SetAvailableSlot, 2, true, 0),
                 (Actions.Release, 2, 0, 2));
+
+            // Setting slot count, release to gain 2 more slots then waits
+            RunSemaphoreSlimDynamicTest10_Internal(0, 2, 5, 2, null,
+                (Actions.SetAvailableSlot, 3, true, 3),
+                (Actions.Release, 2, 3, 5),
+                (Actions.Wait, 0, true, 4),
+                (Actions.Wait, 0, true, 3));
         }
 
         private static void RunSemaphoreSlimDynamicTest10_Internal(
@@ -733,43 +755,43 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
         }
 
         [Fact]
-        public static void RunSemaphoreSlimDynamicTest11_ConcurrentSetAvailableSlot()
+        public void RunSemaphoreSlimDynamicTest11_ConcurrentSetAvailableSlot()
         {
-            // Setting same slot count does nothing
+            this.testOutputHelper.WriteLine("Setting same slot count does nothing");
             RunSemaphoreSlimDynamicTest11_Internal(0, 0, 1, 0, 0,
                 (Actions.SetAvailableSlot, 0));
 
-            // Setting same slot count multiple times should result the same
+            this.testOutputHelper.WriteLine("\nSetting same slot count multiple times should result the same");
             RunSemaphoreSlimDynamicTest11_Internal(0, 0, 10, 0, 5,
                 (Actions.SetAvailableSlot, 5),
                 (Actions.SetAvailableSlot, 5),
                 (Actions.SetAvailableSlot, 5));
 
-            // Setting slot count and release at the same time
-            RunSemaphoreSlimDynamicTest11_Internal(0, 1, 2, 1, 2,
+            this.testOutputHelper.WriteLine("\nSetting slot count and release at the same time");
+            RunSemaphoreSlimDynamicTest11_Internal(0, 1, 3, 1, 3,
                 (Actions.SetAvailableSlot, 2),
                 (Actions.Release, null));
-            
-            // Setting slot count and wait at the same time so final count should be 1
+
+            this.testOutputHelper.WriteLine("\nSetting slot count and wait at the same time so final count should be 1");
             RunSemaphoreSlimDynamicTest11_Internal(0, 1, 2, 1, 1,
                 (Actions.SetAvailableSlot, 2),
                 (Actions.WaitAsync, null));
 
-            // Setting slot count, wait and release at the same time
+            this.testOutputHelper.WriteLine("\nSetting slot count, wait and release at the same time");
             RunSemaphoreSlimDynamicTest11_Internal(0, 1, 3, 1, 2,
                 (Actions.SetAvailableSlot, 2),
                 (Actions.Release, null),
                 (Actions.Wait, 0));
 
-            // Setting slot count, wait and release at the same time
-            RunSemaphoreSlimDynamicTest11_Internal(0, 2, 4, 2, 3,
+            this.testOutputHelper.WriteLine("\nSetting slot count, wait and release at the same time");
+            RunSemaphoreSlimDynamicTest11_Internal(0, 2, 5, 2, 3,
                 (Actions.SetAvailableSlot, 3),
                 (Actions.Wait, 0),
                 (Actions.Wait, 0),
                 (Actions.Release, 2));
         }
 
-        private static void RunSemaphoreSlimDynamicTest11_Internal(
+        private void RunSemaphoreSlimDynamicTest11_Internal(
             int min, int initial, int max, int initCount, int finalCount,
             params (Actions action, object param)[] actions)
         {
@@ -778,8 +800,9 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
             Assert.Equal(min, semaphore.MinimumSlotsCount);
             Assert.Equal(initial, semaphore.AvailableSlotsCount);
             Assert.Equal(max, semaphore.MaximumSlotsCount);
-
             Assert.Equal(initCount, semaphore.CurrentCount);
+
+            this.testOutputHelper.WriteLine($"initCount={semaphore.CurrentCount}");
 
             Task[] tasks = new Task[actions.Length];
             
@@ -793,19 +816,14 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
                 {
                     mre.WaitOne();
 
-                    try
+                    // Action
+                    CallSemaphoreAction(semaphore, actions[index].action, actions[index].param, this.testOutputHelper, $"({index}) ");
+                    if (actions[index].action == Actions.SetAvailableSlot)
                     {
-                        // Action
-                        CallSemaphoreAction(semaphore, actions[index].action, actions[index].param);
-                        if (actions[index].action == Actions.SetAvailableSlot)
-                        {
-                            Assert.Equal(actions[index].param, semaphore.AvailableSlotsCount);
-                        }
+                        Assert.Equal(actions[index].param, semaphore.AvailableSlotsCount);
                     }
-                    catch (SemaphoreFullException)
-                    {
-                        Assert.Equal(Actions.Release, actions[index].action);
-                    }
+
+                    this.testOutputHelper.WriteLine($"({index}) currentCount={semaphore.CurrentCount}");
                 });
             }
 
@@ -813,6 +831,8 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
             
             //wait work to be done;
             Task.WaitAll(tasks);
+
+            this.testOutputHelper.WriteLine($"finalCount={finalCount} currentCount={semaphore.CurrentCount}");
 
             Assert.Equal(finalCount, semaphore.CurrentCount);
         }
