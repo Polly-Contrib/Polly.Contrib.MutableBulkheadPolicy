@@ -21,7 +21,7 @@ namespace Polly.Contrib.MutableBulkheadPolicy.Specs
         public SemaphoreSlimDynamicTests(ITestOutputHelper testOutputHelper)
         {
 #if !DEBUG 
-            testOutputHelper = new SilentOutput();
+            testOutputHelper = new MutableBulkheadSpecsHelper.SilentOutput();
 #endif
             this.testOutputHelper = testOutputHelper;
         }
