@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.1;netstandard2.0</TargetFrameworks>
+    <AssemblyName>Polly.Contrib.MutableBulkheadPolicy</AssemblyName>
+    <RootNamespace>Polly.Contrib.MutableBulkheadPolicy</RootNamespace>
+    <Company>App vNext</Company>
+    <Copyright>Copyright (c) 2019, Microsoft, App vNext and contributors</Copyright>
+    <Description>Polly.Contrib.MutableMutableBulkheadPolicy is a custom Polly policy to perform mutable bulkhead isolation while allowing parallelization parameters to be modified.</Description>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Eric Huang, Microsoft, App vNext</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.0-bumptov100-0001</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0.0</InformationalVersion>
+    <PackageVersion>1.0.0-bumptov100-0001</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' ">
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Polly.Contrib.MutableBulkheadPolicy.Specs</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Polly" Version="7.0.0" />
+  </ItemGroup>
+</Project>
