@@ -6,6 +6,8 @@ For more information on Bulkhead Policy see the [Bulkhead doc](https://github.co
 
 For more background on Polly see the [main Polly repo](https://github.com/App-vNext/Polly).
 
+[![NuGet version](https://badge.fury.io/nu/Polly.Contrib.MutableBulkheadPolicy.svg)](https://badge.fury.io/nu/Polly.Contrib.MutableBulkheadPolicy) [![Build status](https://ci.appveyor.com/api/projects/status/ler6j7satm1v67bp?svg=true)](https://ci.appveyor.com/project/Polly-Contrib/polly-contrib-mutablebulkheadpolicy)
+
 ## Usage
 
 ### Asynchronous executions
