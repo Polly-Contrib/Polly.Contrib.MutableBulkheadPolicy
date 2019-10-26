@@ -12,7 +12,7 @@
     <projectUrl>https://github.com/Polly-Contrib/Polly.Contrib.MutableBulkheadPolicy</projectUrl>
     <copyright>Copyright © 2019, App vNext and contributors</copyright>
     <releaseNotes>
-     0.1.0
+     1.0.0
      ---------------------
      - Initial version
    </releaseNotes>
